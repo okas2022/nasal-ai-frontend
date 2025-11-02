@@ -2,32 +2,46 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>비강 내시경 AI 분석</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>연세대학교 청각재활연구소 - 비강 내시경 AI 분석 v3.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="style.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
-    <h2>📤 비강 내시경 이미지 업로드</h2>
+    <header>
+      <h1>🏥 연세대학교 청각재활연구소</h1>
+      <h2>비강 내시경 AI 분석 시스템 (ONNX 통합 v3.0)</h2>
+    </header>
 
-    <input type="file" id="imageUpload" accept="image/*" />
-    <br /><br />
-    <img id="imagePreview" class="preview" alt="업로드된 이미지 미리보기" />
-    <br /><br />
-    <button id="analyzeBtn">AI 분석 시작</button>
+    <section class="upload">
+      <label for="imageUpload">📸 내시경 이미지 업로드</label>
+      <input id="imageUpload" type="file" accept="image/*" />
+      <button id="analyzeBtn">AI 분석 시작</button>
+      <p id="status">대기 중…</p>
+    </section>
 
-    <h2>🧠 AI 분석 결과</h2>
-    <p id="resultText">결과가 여기에 표시됩니다.</p>
+    <section class="result">
+      <h3 id="summary">결과가 여기에 표시됩니다.</h3>
 
-    <table id="resultTable"></table>
+      <div class="row">
+        <div class="col">
+          <canvas id="riskChart"></canvas>
+        </div>
+        <div class="col">
+          <table id="resultTable"></table>
+        </div>
+      </div>
 
-    <div class="chart-container">
-      <canvas id="riskChart"></canvas>
-    </div>
+      <h3>🔍 병변 시각화</h3>
+      <div class="image-wrap">
+        <img id="segmentationResult" alt="AI Overlay" />
+      </div>
+    </section>
 
-    <h2>🔍 병변 부위 시각화</h2>
-    <img id="segmentationResult" class="segmented" alt="Segmentation 결과" />
+    <footer>
+      ⓒ Yonsei University Hearing Rehabilitation Institute
+    </footer>
   </div>
 
   <script src="script.js"></script>
