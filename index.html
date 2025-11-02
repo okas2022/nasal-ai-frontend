@@ -1,0 +1,57 @@
+
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>연세대학교 청각재활연구소 비강 AI 분석기 · Audiso Nasal AI Analyzer</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="assets/style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="header">
+    <img src="assets/logo_yonsei_ent.svg" alt="Yonsei ENT Lab" height="36" />
+    <h1>연세대학교 청각재활연구소 비강 AI 분석기 <span class="badge">Audiso Nasal AI Analyzer</span></h1>
+  </header>
+
+  <main class="container">
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input id="fileInput" type="file" accept="image/*">
+        <button id="analyzeBtn" class="btn">AI 분석 시작</button>
+        <span class="subtle">Hugging Face backend: okas2000-nasal-ai-backend</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin:6px 0 10px">업로드 이미지 / 오버레이</h3>
+        <div id="preview" class="preview"><div class="subtle">이미지를 업로드하세요.</div></div>
+      </div>
+      <div class="card">
+        <h3 style="margin:6px 0 10px">지표 Radar</h3>
+        <canvas id="radar" height="320"></canvas>
+        <div id="kpi" class="kpi"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin:6px 0 10px">상세 지표</h3>
+      <div id="detailTable"></div>
+    </div>
+
+    <div class="helper" style="margin-top:16px">
+      <strong>결과 해석 도움말</strong><br>
+      · <b>비용종(Nasal Polyp)</b>: 둥글고 회백색, 원형도↑, 붉은색↓<br>
+      · <b>하비갑개 비후</b>: 길쭉한 구조, 세장비↑, 붉은색↑<br>
+      · <b>협착도</b>: 비강 통로 면적이 작을수록 협착 ↑
+    </div>
+
+    <footer>ⓒ Audiso · Yonsei Univ. ENT Lab · 2025</footer>
+  </main>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>
