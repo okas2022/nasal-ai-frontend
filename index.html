@@ -1,37 +1,84 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>연세대학교 청각재활연구소 | 비강 내시경 AI 분석</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>연세대학교 청각재활연구소 – 비강 내시경 Screening v1</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <header>
-    <h1>🏥 연세대학교 청각재활연구소</h1>
-    <p>비강 내시경 AI 분석 시스템</p>
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.png" alt="Yonsei Hearing Rehab Institute" class="logo"/>
+      <div class="title">
+        <h1>연세대학교 청각재활연구소</h1>
+        <p>비강 내시경 AI Screening (공기/점막/분비물/폴립 의심 + 위험도)</p>
+      </div>
+    </div>
+    <div class="backend">
+      <label for="backend">백엔드 URL</label>
+      <input id="backend" type="text" placeholder="https://<your-space>.hf.space" />
+      <button id="saveBackend">저장</button>
+    </div>
   </header>
 
-  <section>
-    <h3>📸 내시경 이미지 업로드</h3>
-    <input type="file" id="imageUpload" accept="image/*" />
-    <button id="analyzeBtn">AI 분석 시작</button>
-    <p id="status"></p>
-  </section>
+  <main class="container">
+    <section class="panel upload">
+      <h2>1) 이미지 업로드</h2>
+      <input type="file" id="fileInput" accept="image/*"/>
+      <button id="analyzeBtn">AI 분석 시작</button>
+      <div id="status" class="muted"></div>
+      <div class="image-row">
+        <div class="img-col">
+          <h3>원본</h3>
+          <img id="preview" alt="preview"/>
+        </div>
+        <div class="img-col">
+          <h3>AI 오버레이</h3>
+          <img id="overlay" alt="overlay result"/>
+        </div>
+      </div>
+    </section>
 
-  <section>
-    <h3>분석 결과</h3>
-    <p id="summary">분석 전입니다.</p>
-    <canvas id="riskChart" width="400" height="200"></canvas>
-    <table id="resultTable" border="1"></table>
-  </section>
+    <section class="panel results">
+      <h2>2) 결과 요약</h2>
+      <div class="cards">
+        <div class="card"><div class="k">소요시간</div><div class="v" id="elapsed">-</div></div>
+        <div class="card"><div class="k">위험 라벨</div><div class="v" id="summaryLabel">-</div></div>
+        <div class="card"><div class="k">위험 점수(0~100)</div><div class="v" id="riskScore">-</div></div>
+      </div>
 
-  <section>
-    <h3>🔍 병변 부위 시각화</h3>
-    <img id="segmentationResult" width="400" />
-  </section>
+      <div class="grid">
+        <div class="panel">
+          <h3>정상 컷오프 대비 편차</h3>
+          <canvas id="barChart" height="220"></canvas>
+        </div>
+        <div class="panel">
+          <h3>세부 지표</h3>
+          <table class="table">
+            <thead><tr><th>지표</th><th>값</th><th>정상컷</th></tr></thead>
+            <tbody id="metricsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-  <script src="script.js"></script>
+    <section class="panel legend">
+      <h2>3) 색상 범례</h2>
+      <ul>
+        <li><span class="chip chip-air"></span> 공기/빈공간</li>
+        <li><span class="chip chip-mucosa"></span> 점막/갑개</li>
+        <li><span class="chip chip-secretion"></span> 분비물</li>
+        <li><span class="chip chip-polyp"></span> 폴립 의심</li>
+      </ul>
+      <p class="muted">※ 내시경 원형 가장자리(빛 반사)는 자동 제외됩니다.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>© Yonsei University Hearing Rehabilitation Institute</small>
+  </footer>
 </body>
 </html>
