@@ -1,61 +1,22 @@
-body {
-  background-color: #f4f6f8;
-  font-family: 'Pretendard', sans-serif;
-  text-align: center;
-  color: #222;
-}
+body { font-family: 'Noto Sans KR', sans-serif; background:#f7f9fc; margin:0; color:#222; }
+.container { max-width:1100px; margin:auto; padding:16px; }
+header { background:#003366; color:#fff; padding:16px; border-radius:10px; }
+h1 { margin:0; font-size:1.6rem; }
+h2 { margin:.25rem 0 0; font-weight:400; font-size:1.05rem; }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 20px 40px;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+.upload { text-align:center; margin:20px 0; }
+.upload input { display:block; margin:10px auto; }
+.upload button { background:#0059b3; color:#fff; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; }
+.upload button:hover { background:#003c80; }
+#status { color:#666; font-size:.9rem; }
 
-.preview, .segmented {
-  width: 80%;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
+.result { margin-top:16px; }
+.row { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; }
+.col { flex:1; min-width:300px; max-width:480px; }
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; }
+th, td { border:1px solid #ddd; padding:6px; }
+th { background:#003366; color:#fff; }
+.image-wrap { display:flex; justify-content:center; margin-top:12px; }
+.image-wrap img { width:72%; max-width:440px; border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,.25); }
 
-button {
-  background-color: #1e73be;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-button:hover {
-  background-color: #155a96;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-table, th, td {
-  border: 1px solid #ddd;
-}
-
-th {
-  background-color: #1e73be;
-  color: white;
-  padding: 8px;
-}
-
-td {
-  padding: 8px;
-}
-
-.chart-container {
-  position: relative;
-  height: 300px;
-  margin-top: 20px;
-}
+footer { margin:20px 0 10px; text-align:center; color:#777; font-size:.9rem; }
