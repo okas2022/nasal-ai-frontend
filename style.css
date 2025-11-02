@@ -1,7 +1,7 @@
 body {
   font-family: 'Noto Sans KR', sans-serif;
-  background: #f9fafc;
-  color: #333;
+  background: #f8fafc;
+  color: #222;
   margin: 0;
   padding: 0;
 }
@@ -14,27 +14,17 @@ body {
 }
 
 header {
-  background: #004080;
+  background: #003366;
   color: white;
   padding: 20px 10px;
   border-radius: 10px;
   margin-bottom: 20px;
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.8em;
-}
+h1 { margin: 0; font-size: 1.8em; }
+h2 { margin-top: 10px; font-weight: 400; font-size: 1.1em; }
 
-h2 {
-  margin-top: 10px;
-  font-weight: 400;
-  font-size: 1.2em;
-}
-
-.upload-section {
-  margin-top: 20px;
-}
+.upload-section { margin-top: 20px; }
 
 .upload-label {
   display: block;
@@ -42,29 +32,20 @@ h2 {
   margin-bottom: 10px;
 }
 
-#imageUpload {
-  margin: 10px auto;
-  display: block;
-}
+#imageUpload { margin: 10px auto; display: block; }
 
 button {
-  background-color: #004080;
+  background-color: #003366;
   color: white;
   border: none;
   padding: 10px 25px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
-  transition: 0.3s;
 }
+button:hover { background-color: #0059b3; }
 
-button:hover {
-  background-color: #0066cc;
-}
-
-.result-section {
-  margin-top: 30px;
-}
+.result-section { margin-top: 30px; }
 
 .result-layout {
   display: flex;
@@ -74,13 +55,7 @@ button:hover {
   gap: 20px;
 }
 
-.graph-container {
-  flex: 1;
-  min-width: 300px;
-  max-width: 500px;
-}
-
-.table-container {
+.graph-container, .table-container {
   flex: 1;
   min-width: 300px;
   max-width: 500px;
@@ -93,32 +68,23 @@ table {
   border-radius: 10px;
   overflow: hidden;
 }
-
-table th, table td {
-  border: 1px solid #ccc;
-  padding: 8px;
-}
-
-table th {
-  background: #004080;
-  color: white;
-}
+table th, table td { border: 1px solid #ccc; padding: 8px; }
+table th { background: #003366; color: white; }
 
 .image-preview {
-  margin-top: 20px;
+  margin-top: 15px;
   display: flex;
   justify-content: center;
 }
-
 .image-preview img {
-  width: 75%;
-  max-width: 480px;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  width: 70%;
+  max-width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
 }
 
 footer {
-  margin-top: 30px;
+  margin-top: 25px;
   font-size: 0.9em;
   color: #666;
 }
