@@ -4,63 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>연세대학교 청각재활연구소 비강 AI 분석기</title>
-  <link rel="icon" href="favicon.ico" />
-  <script>
-    // CSS/JS 자동 경로 감지 함수
-    const detectPath = (filename) => {
-      const paths = [
-        `./${filename}`,
-        `./assets/${filename}`,
-        `./static/${filename}`,
-        `./public/${filename}`
-      ];
-      return paths.find(path => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('HEAD', path, false);
-        xhr.send();
-        return xhr.status === 200;
-      }) || `./${filename}`;
-    };
-    // 동적으로 style/script 경로 주입
-    document.write(`<link rel="stylesheet" href="${detectPath('style.css')}?v=${Date.now()}" />`);
-    document.write(`<script defer src="${detectPath('script.js')}?v=${Date.now()}"></script>`);
-  </script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
   <header>
     <img src="logo_yonsei_ent.svg" alt="Yonsei ENT Logo" class="logo" />
     <h1>연세대학교 청각재활연구소 비강 AI 분석기</h1>
-    <p class="subtitle">AI 기반 비강 점막 및 용종 자동 분석 시스템</p>
   </header>
 
   <main>
-    <section class="upload-section">
+    <section id="uploadSection">
       <h2>📤 비강 내시경 이미지 업로드</h2>
       <input type="file" id="imageUpload" accept="image/*" />
       <button id="analyzeBtn">AI 분석 시작</button>
+      <img id="imagePreview" alt="미리보기" class="preview" />
     </section>
 
-    <section class="preview-section">
-      <h2>🩺 업로드된 이미지</h2>
-      <div id="imagePreviewContainer">
-        <img id="imagePreview" src="" alt="업로드 이미지 미리보기" />
-      </div>
-    </section>
+    <section id="resultSection">
+      <h2>🧠 AI 분석 결과</h2>
+      <div id="resultText">분석 결과가 여기에 표시됩니다.</div>
 
-    <section class="result-section">
-      <h2>📊 AI 분석 결과</h2>
-      <div id="resultText">아직 분석이 수행되지 않았습니다.</div>
-      <canvas id="colorChart" width="400" height="200"></canvas>
-      <div id="summaryTableContainer"></div>
+      <table id="resultTable" class="result-table">
+        <thead>
+          <tr><th>항목</th><th>결과</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <canvas id="resultChart" width="400" height="300"></canvas>
     </section>
   </main>
 
   <footer>
-    <p>© 2025 연세대학교 청각재활연구소 | Nasal AI Frontend v3</p>
+    <p>ⓒ Yonsei University Hearing Rehabilitation Research Institute</p>
   </footer>
 
-  <!-- Chart.js 그래프 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- ✅ JS 연결 -->
+  <script defer src="./script.js"></script>
 </body>
 </html>
