@@ -1,119 +1,138 @@
-
+/* ===== 설정: 백엔드 API URL ===== */
 const API_URL = "https://okas2000-nasal-ai-backend.hf.space/api/predict";
 
-const $ = (q)=>document.querySelector(q);
-let uploadedImageDataUrl = null;
+/* ===== DOM ===== */
+const fileInput   = document.getElementById("fileInput");
+const analyzeBtn  = document.getElementById("analyzeBtn");
+const previewImg  = document.getElementById("previewImg");
+const overlayImg  = document.getElementById("overlayImg");
+const kpiDiagnosis= document.getElementById("kpiDiagnosis");
+const kpiConf     = document.getElementById("kpiConf");
+const kpiHyper    = document.getElementById("kpiHyper");
+const kpiNarrow   = document.getElementById("kpiNarrow");
+const metricsBody = document.getElementById("metricsBody");
+const debugBox    = document.getElementById("debugBox");
+const resultBadges= document.getElementById("resultBadges");
 
-function setLoading(on){
-  const btn = $("#analyzeBtn");
-  btn.disabled = on;
-  btn.innerText = on ? "분석 중..." : "AI 분석 시작";
-}
+let radarChart;
 
-function onFileSelected(e){
-  const file = e.target.files[0];
-  if(!file){ uploadedImageDataUrl=null; $("#preview").innerHTML="<div class='subtle'>이미지가 없습니다</div>"; return; }
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    uploadedImageDataUrl = reader.result;
-    $("#preview").innerHTML = `<img src="${uploadedImageDataUrl}" style="max-width:100%;height:auto;display:block" alt="preview"/>`;
-  };
-  reader.readAsDataURL(file);
-}
+/* 미리보기 표시 */
+fileInput.addEventListener("change", (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  previewImg.src = url;
+});
 
-async function analyze(){
-  const fileInput = $("#fileInput");
-  if(!fileInput.files[0]) { alert("이미지를 선택하세요."); return; }
-  setLoading(true);
-  try{
+/* 분석 버튼 */
+analyzeBtn.addEventListener("click", async () => {
+  const f = fileInput.files?.[0];
+  if (!f) {
+    alert("이미지를 먼저 선택해주세요.");
+    return;
+  }
+  setBusy(true);
+
+  try {
     const fd = new FormData();
-    fd.append("file", fileInput.files[0]);
-    const res = await fetch(API_URL, { method:"POST", body: fd });
-    const data = await res.json();
-    renderResult(data);
-  }catch(err){
+    fd.append("file", f);
+
+    const res = await fetch(API_URL, { method: "POST", body: fd });
+    const text = await res.text();     // 방어적 파싱
+    debugBox.textContent = `HTTP ${res.status}\n\n${text}`;
+
+    const json = JSON.parse(text);
+    renderResult(json);
+  } catch (err) {
     console.error(err);
-    alert("분석 중 오류가 발생했습니다.");
-  }finally{
-    setLoading(false);
+    alert("분석 중 오류가 발생했습니다. 콘솔/로그를 확인해주세요.");
+  } finally {
+    setBusy(false);
   }
+});
+
+/* 결과 렌더링 */
+function renderResult(d) {
+  // 오버레이
+  if (d.overlay_mask_png_b64) {
+    overlayImg.src = `data:image/png;base64,${d.overlay_mask_png_b64}`;
+  }
+
+  // KPI
+  kpiDiagnosis.textContent = d.diagnosis ?? "-";
+  kpiConf.textContent      = d.confidence ? `${(d.confidence*100).toFixed(1)}%` : "-";
+  kpiHyper.textContent     = d.hypertrophy_grade ?? "-";
+  kpiNarrow.textContent    = d.narrowness != null ? (d.narrowness*100).toFixed(1)+"%" : "-";
+
+  // 배지
+  resultBadges.classList.remove("hidden");
+  resultBadges.innerHTML = "";
+  resultBadges.appendChild(makeBadge("Primary", d.diagnosis || "Unknown"));
+  if (d.airway_ratio != null) resultBadges.appendChild(makeBadge("Airway", `${(d.airway_ratio*100).toFixed(0)}%`));
+  if (d.red_mean     != null) resultBadges.appendChild(makeBadge("Redness", d.red_mean.toFixed(2)));
+  if (d.gloss_ratio  != null) resultBadges.appendChild(makeBadge("Gloss", d.gloss_ratio.toFixed(2)));
+
+  // 표
+  const rows = [
+    ["Brightness",   fmt(d.brightness), "전체 밝기 (0~1)"],
+    ["Red mean",     fmt(d.red_mean),    "발적(염증) 추정"],
+    ["Circularity",  fmt(d.circularity), "원형도 (폴립 지표)"],
+    ["Aspect ratio", fmt(d.aspect_ratio),"세장비 (비후 지표)"],
+    ["Airway ratio", fmt(d.airway_ratio),"밝은 통로 비율"],
+    ["Narrowness",   fmt(d.narrowness),  "협착도 (1-Airway)"],
+    ["Entropy",      fmt(d.entropy),     "텍스처 변화량"],
+    ["Edge density", fmt(d.edge_density),"엣지 밀도"],
+    ["Gloss ratio",  fmt(d.gloss_ratio), "광택/점액 추정"],
+  ];
+  metricsBody.innerHTML = rows.map(([k,v,desc]) => `
+    <tr><td>${k}</td><td>${v}</td><td>${desc}</td></tr>
+  `).join("");
+
+  // 레이더 차트
+  drawRadar({
+    Redness: d.red_mean ?? 0,
+    Gloss: d.gloss_ratio ?? 0,
+    Narrowness: d.narrowness ?? 0,
+    Texture: d.entropy ?? 0,
+    Edge: d.edge_density ?? 0
+  });
 }
 
-function mm(v){ return (v*100).toFixed(1) + "%"; }
+function drawRadar(metrics) {
+  const ctx = document.getElementById("radarCanvas");
+  const labels = Object.keys(metrics);
+  const data = Object.values(metrics).map(v => clamp01(v));
 
-function renderResult(r){
-  // KPI pills
-  $("#kpi").innerHTML = `
-   <div class="pill"><div class="subtle">진단</div><div><strong>${r.diagnosis || r.lesion_type || "N/A"}</strong></div></div>
-   <div class="pill"><div class="subtle">확신도</div><div><strong>${r.confidence ? (r.confidence*100).toFixed(1)+"%" : "N/A"}</strong></div></div>
-   <div class="pill"><div class="subtle">비후 등급</div><div><strong>${r.hypertrophy_grade || "N/A"}</strong></div></div>
-   <div class="pill"><div class="subtle">협착도</div><div><strong>${r.narrowness ? mm(r.narrowness) : (r.airway_ratio? mm(1-r.airway_ratio): "N/A")}</strong></div></div>
-  `;
-
-  // Table
-  $("#detailTable").innerHTML = `
-    <table class="table">
-      <thead><tr><th>지표</th><th>값</th><th>설명</th></tr></thead>
-      <tbody>
-        <tr><td>홍조지수</td><td>${r.redness_index!==undefined? mm(r.redness_index): (r.red_mean? mm(r.red_mean):"N/A")}</td><td>점막 염증/혈류 반영</td></tr>
-        <tr><td>광택비율</td><td>${r.gloss_ratio!==undefined? mm(r.gloss_ratio):"N/A"}</td><td>분비물/표면 반사</td></tr>
-        <tr><td>밝기</td><td>${r.brightness!==undefined? mm(r.brightness):"N/A"}</td><td>조명·노출</td></tr>
-        <tr><td>엔트로피</td><td>${r.entropy!==undefined? mm(r.entropy):"N/A"}</td><td>텍스처 다양성</td></tr>
-        <tr><td>에지밀도</td><td>${r.edge_density!==undefined? mm(r.edge_density):"N/A"}</td><td>구조 경계 복잡성</td></tr>
-        <tr><td>원형도</td><td>${r.circularity!==undefined? r.circularity.toFixed(2):"N/A"}</td><td>폴립 추정 핵심</td></tr>
-        <tr><td>세장비</td><td>${r.aspect_ratio!==undefined? r.aspect_ratio.toFixed(2):"N/A"}</td><td>하비갑개 추정</td></tr>
-        <tr><td>비강 통로 비율</td><td>${r.airway_ratio!==undefined? mm(r.airway_ratio):"N/A"}</td><td>협착도 역지표</td></tr>
-      </tbody>
-    </table>
-  `;
-
-  // Overlay preview (base64) if present
-  if(r.overlay_mask_png_b64){
-    const overlayUrl = `data:image/png;base64,${r.overlay_mask_png_b64}`;
-    $("#preview").innerHTML = `
-      <div style="position:relative;display:inline-block">
-        <img src="${uploadedImageDataUrl}" style="max-width:100%;display:block;border-radius:10px;border:1px solid #e5e7eb"/>
-        <img src="${overlayUrl}" style="position:absolute;inset:0;max-width:100%;mix-blend:multiply;opacity:.75"/>
-      </div>
-    `;
-  }
-
-  // Radar chart
-  const labels = ["Redness","Gloss","Narrow","Texture","Edges","Brightness"];
-  const values = [
-    r.redness_index ?? r.red_mean ?? 0,
-    r.gloss_ratio ?? 0,
-    (r.narrowness ?? (r.airway_ratio? 1 - r.airway_ratio: 0)),
-    r.entropy ?? 0,
-    r.edge_density ?? 0,
-    r.brightness ?? 0
-  ].map(x=> typeof x==="number" ? x : 0);
-
-  const ctx = document.getElementById('radar').getContext('2d');
-  if(window.__radar__) window.__radar__.destroy();
-  window.__radar__ = new Chart(ctx, {
-    type:'radar',
-    data:{
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(ctx, {
+    type: "radar",
+    data: {
       labels,
-      datasets:[{
-        label:'Feature Index (0~1)',
-        data: values,
-        fill:true,
-        backgroundColor:'rgba(59,130,246,0.2)',
-        borderColor:'rgba(59,130,246,1)',
-        pointBackgroundColor:'rgba(59,130,246,1)',
-        borderWidth:2
+      datasets: [{
+        label: "Feature Index (0~1)",
+        data,
+        fill: true,
+        pointRadius: 3
       }]
     },
-    options:{
-      responsive:true,
-      scales:{ r:{ min:0, max:1, ticks:{ stepSize:0.2 } } },
-      plugins:{ legend:{ display:false } }
+    options: {
+      responsive: true,
+      scales: { r: { suggestedMin: 0, suggestedMax: 1 } },
+      plugins: { legend: { display: false } }
     }
   });
 }
 
-window.addEventListener("DOMContentLoaded", ()=>{
-  $("#fileInput").addEventListener("change", onFileSelected);
-  $("#analyzeBtn").addEventListener("click", analyze);
-});
+/* utils */
+function clamp01(v) { return Math.max(0, Math.min(1, Number(v)||0)); }
+function fmt(v) { return v == null ? "-" : Number(v).toFixed(3); }
+function makeBadge(title, value) {
+  const el = document.createElement("div");
+  el.className = "badge";
+  el.innerHTML = `<span class="badge-k">${title}</span><span class="badge-v">${value}</span>`;
+  return el;
+}
+function setBusy(b) {
+  analyzeBtn.disabled = !!b;
+  analyzeBtn.textContent = b ? "분석 중..." : "AI 분석 시작";
+}
