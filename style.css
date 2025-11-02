@@ -1,87 +1,46 @@
 body {
-  font-family: "Pretendard", sans-serif;
-  margin: 0;
-  background: #f8f9fa;
-  color: #222;
+  font-family: "Noto Sans KR", sans-serif;
+  background: #fafafa;
   text-align: center;
+  padding: 40px;
+  color: #333;
 }
 
-header {
-  background: #0a3c84;
-  color: white;
-  padding: 1rem 0;
-  border-bottom: 4px solid #4f83ff;
-}
-
-main {
-  margin: 2rem auto;
-  width: 90%;
-  max-width: 1000px;
-}
-
-#upload-section {
-  margin-bottom: 2rem;
-}
-
-#file-input {
-  display: block;
-  margin: 1rem auto;
+h1 {
+  color: #1976d2;
+  margin-bottom: 20px;
 }
 
 button {
-  padding: 0.8rem 1.5rem;
+  padding: 10px 20px;
+  font-size: 15px;
   border: none;
-  border-radius: 6px;
-  background: #0a3c84;
+  background: #1976d2;
   color: white;
-  font-size: 1rem;
+  border-radius: 8px;
   cursor: pointer;
 }
-
 button:hover {
-  background: #2050b0;
+  background: #125a9c;
 }
 
-#result-grid {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
+.hidden {
+  display: none;
 }
 
-#result-grid img {
+#resultImage {
   width: 400px;
-  max-width: 90%;
+  margin: 20px auto;
+  display: block;
   border: 2px solid #ccc;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
-#metric-table {
-  width: 80%;
-  margin: 1.5rem auto;
-  border-collapse: collapse;
+.metrics {
+  margin: 15px 0;
+  font-size: 16px;
 }
 
-#metric-table th, #metric-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-#metric-table th {
-  background-color: #0a3c84;
-  color: white;
-}
-
-#loading {
-  font-size: 1.2rem;
-  color: #0a3c84;
-  margin-top: 2rem;
-}
-
-footer {
-  margin-top: 3rem;
-  padding: 1rem;
-  background: #eee;
-  font-size: 0.9rem;
-  color: #555;
+canvas {
+  margin-top: 20px;
 }
