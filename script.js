@@ -1,5 +1,6 @@
-// === Nasal AI Frontend Script ===
-// Hugging Face Backend 주소 (아래 URL은 본인 backend 주소로 교체)
+// === Yonsei ENT Nasal AI Frontend ===
+
+// 🔗 Hugging Face Backend 주소 (본인 백엔드 URL로 정확히 교체!)
 const BACKEND_URL = "https://okas2000-nasal-ai-backend.hf.space/api/predict";
 
 // HTML 요소 참조
@@ -12,7 +13,17 @@ const chartCanvas = document.getElementById("colorChart");
 
 let colorChart = null;
 
-// 이미지 미리보기
+// 초기 로드 시 백엔드 연결 테스트
+(async () => {
+  try {
+    const res = await fetch(BACKEND_URL, { method: "GET" });
+    console.log("✅ Backend reachable:", res.status);
+  } catch (e) {
+    console.error("❌ Backend connection failed:", e);
+  }
+})();
+
+// 이미지 미리보기 기능
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
   if (file) {
@@ -24,7 +35,7 @@ fileInput.addEventListener("change", () => {
   }
 });
 
-// AI 분석 요청
+// AI 분석 버튼 클릭 시 이벤트
 analyzeBtn.addEventListener("click", async () => {
   const file = fileInput.files[0];
   if (!file) {
@@ -49,18 +60,18 @@ analyzeBtn.addEventListener("click", async () => {
     });
 
     if (!response.ok) {
-      throw new Error(`서버 오류: ${response.status}`);
+      throw new Error(`서버 응답 오류: ${response.status}`);
     }
 
     const result = await response.json();
     displayResults(result);
   } catch (error) {
-    console.error(error);
-    resultText.textContent = "❌ 분석 중 오류가 발생했습니다. 백엔드 서버를 확인하세요.";
+    console.error("❌ Fetch error:", error);
+    resultText.textContent = "❌ 분석 중 오류가 발생했습니다. 백엔드 연결 상태를 확인하세요.";
   }
 });
 
-// 결과 표시 함수
+// === 결과 표시 함수 ===
 function displayResults(result) {
   const {
     lesion_type,
@@ -71,14 +82,15 @@ function displayResults(result) {
     image_size,
   } = result;
 
+  // 결과 텍스트
   resultText.innerHTML = `
-    <b>AI 분석 결과:</b><br/>
-    병변 유형: <b>${lesion_type}</b><br/>
-    점막 비후 정도: <b>${hypertrophy_grade}</b><br/>
-    신뢰도(Confidence): ${(confidence * 100).toFixed(1)}%<br/>
-    평균 밝기(Brightness): ${mean_brightness.toFixed(3)}<br/>
-    녹색 비율(Green ratio): ${green_ratio.toFixed(3)}<br/>
-    이미지 크기: ${image_size[0]} × ${image_size[1]} px
+    <h3>AI 분석 결과 요약</h3>
+    <b>병변 유형:</b> ${lesion_type}<br>
+    <b>점막 비후 정도:</b> ${hypertrophy_grade}<br>
+    <b>신뢰도:</b> ${(confidence * 100).toFixed(1)}%<br>
+    <b>평균 밝기:</b> ${mean_brightness.toFixed(3)}<br>
+    <b>녹색 비율:</b> ${green_ratio.toFixed(3)}<br>
+    <b>이미지 크기:</b> ${image_size[0]} × ${image_size[1]} px
   `;
 
   // 표 형태 요약
@@ -93,7 +105,7 @@ function displayResults(result) {
     </table>
   `;
 
-  // 색상 비율 차트
+  // 그래프 표시
   const ctx = chartCanvas.getContext("2d");
   colorChart = new Chart(ctx, {
     type: "bar",
@@ -101,7 +113,7 @@ function displayResults(result) {
       labels: ["Mean Brightness", "Green Ratio", "Confidence"],
       datasets: [
         {
-          label: "색상 분석 결과",
+          label: "AI 색상 기반 분석 결과",
           data: [mean_brightness, green_ratio, confidence],
           backgroundColor: ["#f1c40f", "#2ecc71", "#3498db"],
         },
@@ -113,7 +125,7 @@ function displayResults(result) {
         legend: { display: false },
         title: {
           display: true,
-          text: "AI 색상 기반 분석 결과",
+          text: "AI 분석 수치 (비강 점막 특성)",
           font: { size: 16 },
         },
       },
