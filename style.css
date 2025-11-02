@@ -1,45 +1,61 @@
 body {
-  font-family: 'Noto Sans KR', sans-serif;
-  margin: 0;
-  background: #f6f8fa;
-  color: #222;
+  background-color: #f4f6f8;
+  font-family: 'Pretendard', sans-serif;
   text-align: center;
+  color: #222;
 }
 
-header {
-  background: linear-gradient(90deg, #003366, #0066cc);
-  color: white;
-  padding: 20px 0;
-}
-
-.logo {
-  height: 60px;
-  margin-bottom: 10px;
-}
-
-main {
-  padding: 20px;
-}
-
-button {
-  padding: 10px 20px;
-  background: #0066cc;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px 40px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .preview, .segmented {
-  margin-top: 15px;
-  max-width: 400px;
+  width: 80%;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-#riskChart {
+button {
+  background-color: #1e73be;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #155a96;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #1e73be;
+  color: white;
+  padding: 8px;
+}
+
+td {
+  padding: 8px;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
   margin-top: 20px;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
 }
