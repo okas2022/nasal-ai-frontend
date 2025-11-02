@@ -5,15 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>연세대학교 청각재활연구소 비강 AI 분석기</title>
   <link rel="icon" href="favicon.ico" />
-  <link rel="stylesheet" href="style.css?v=5" />
-  <script defer src="script.js?v=5"></script>
+  <script>
+    // CSS/JS 자동 경로 감지 함수
+    const detectPath = (filename) => {
+      const paths = [
+        `./${filename}`,
+        `./assets/${filename}`,
+        `./static/${filename}`,
+        `./public/${filename}`
+      ];
+      return paths.find(path => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('HEAD', path, false);
+        xhr.send();
+        return xhr.status === 200;
+      }) || `./${filename}`;
+    };
+    // 동적으로 style/script 경로 주입
+    document.write(`<link rel="stylesheet" href="${detectPath('style.css')}?v=${Date.now()}" />`);
+    document.write(`<script defer src="${detectPath('script.js')}?v=${Date.now()}"></script>`);
+  </script>
 </head>
 
 <body>
   <header>
     <img src="logo_yonsei_ent.svg" alt="Yonsei ENT Logo" class="logo" />
     <h1>연세대학교 청각재활연구소 비강 AI 분석기</h1>
-    <p class="subtitle">AI 기반 비강 점막 및 용종 자동 분석 시스템 (Frontend)</p>
+    <p class="subtitle">AI 기반 비강 점막 및 용종 자동 분석 시스템</p>
   </header>
 
   <main>
@@ -39,24 +57,10 @@
   </main>
 
   <footer>
-    <p>© 2025 연세대학교 청각재활연구소 | Nasal AI Frontend</p>
+    <p>© 2025 연세대학교 청각재활연구소 | Nasal AI Frontend v3</p>
   </footer>
 
-  <!-- Chart.js 라이브러리 -->
+  <!-- Chart.js 그래프 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script>
-    // 경로 자동 감지 (CSS/JS 파일 캐시 문제 방지)
-    document.addEventListener("DOMContentLoaded", () => {
-      const css = document.querySelector('link[rel="stylesheet"]');
-      if (css) {
-        css.href = css.href.split('?')[0] + '?v=' + Date.now();
-      }
-      const js = document.querySelector('script[src*="script.js"]');
-      if (js) {
-        js.src = js.src.split('?')[0] + '?v=' + Date.now();
-      }
-    });
-  </script>
 </body>
 </html>
