@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>연세대학교 청각재활연구소 비강 내시경 AI 분석</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>연세대학교 청각재활연구소 - 비강 내시경 AI 분석 시스템</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="style.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-  <header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/61/Yonsei_University_logo.svg" alt="Yonsei Logo" class="logo" />
-    <div class="header-text">
-      <h1>연세대학교 청각재활연구소</h1>
-      <h2>비강 내시경 AI 분석 시스템</h2>
-    </div>
-  </header>
 
+<body>
   <div class="container">
+    <header>
+      <h1>🏥 연세대학교 청각재활연구소</h1>
+      <h2>비강 내시경 AI 분석 시스템</h2>
+    </header>
+
     <section class="upload-section">
-      <h3>📤 비강 내시경 이미지 업로드</h3>
+      <label for="imageUpload" class="upload-label">📷 내시경 이미지 업로드</label>
       <input type="file" id="imageUpload" accept="image/*" />
-      <br /><br />
-      <img id="imagePreview" class="preview" alt="업로드된 이미지 미리보기" />
-      <br /><br />
       <button id="analyzeBtn">AI 분석 시작</button>
     </section>
 
     <section class="result-section">
-      <h3>🧠 AI 분석 결과</h3>
-      <p id="resultText">결과가 여기에 표시됩니다.</p>
+      <h3 id="resultText">결과가 여기에 표시됩니다.</h3>
 
-      <table id="resultTable"></table>
-
-      <div class="chart-container">
-        <canvas id="riskChart"></canvas>
+      <div class="result-layout">
+        <div class="graph-container">
+          <canvas id="riskChart"></canvas>
+        </div>
+        <div class="table-container">
+          <table id="resultTable"></table>
+        </div>
       </div>
 
       <h3>🔍 병변 부위 시각화</h3>
-      <img id="segmentationResult" class="segmented" alt="Segmentation 결과" />
+      <div class="image-preview">
+        <img id="segmentationResult" alt="분석된 이미지" />
+      </div>
     </section>
   </div>
 
   <footer>
-    <p>ⓒ 연세대학교 청각재활연구소 | AI 기반 비강 내시경 진단 연구 프로젝트</p>
+    <p>ⓒ Yonsei University Hearing Rehabilitation Institute. All rights reserved.</p>
   </footer>
 
   <script src="script.js"></script>
