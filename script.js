@@ -1,15 +1,5 @@
-// =============================
-// ✅ 백엔드 주소 설정 (꼭 수정 필요)
-// =============================
-// Hugging Face Space 이름이 다르다면, 아래 주소만 바꾸세요.
-const backendBase = "https://okas2000-nasal-ai-backend.hf.space";
+const backend = "https://okas2000-nasal-ai-backend.hf.space/";
 
-// 백엔드 주소 끝에 슬래시 자동 보정
-const backend = backendBase.endsWith("/") ? backendBase : backendBase + "/";
-
-// =============================
-// DOM 요소 선택
-// =============================
 const fileInput = document.getElementById("file-input");
 const analyzeBtn = document.getElementById("analyze-btn");
 const loading = document.getElementById("loading");
@@ -21,9 +11,6 @@ const chartCanvas = document.getElementById("chart");
 
 let chart;
 
-// =============================
-// 📤 분석 요청
-// =============================
 analyzeBtn.addEventListener("click", async () => {
   const file = fileInput.files[0];
   if (!file) {
@@ -38,84 +25,87 @@ analyzeBtn.addEventListener("click", async () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    // ✅ 우선 /api/predict 요청
-    let response = await fetch(`${backend}api/predict`, {
+    const res = await fetch(`${backend}api/predict`, {
       method: "POST",
       body: formData,
     });
+    if (!res.ok) throw new Error("서버 응답 오류: " + res.status);
 
-    // ✅ /api/predict 가 404이면 /predict 로 재시도
-    if (response.status === 404) {
-      console.warn("[WARN] /api/predict not found → retrying /predict");
-      response = await fetch(`${backend}predict`, {
-        method: "POST",
-        body: formData,
-      });
-    }
-
-    if (!response.ok) throw new Error(`서버 응답 오류: ${response.status}`);
-
-    const data = await response.json();
+    const data = await res.json();
     showResults(file, data);
   } catch (err) {
     alert("❌ 분석 실패: " + err.message);
-    console.error(err);
   } finally {
     loading.style.display = "none";
   }
 });
 
-// =============================
-// 📊 결과 표시
-// =============================
 function showResults(file, data) {
   resultSection.style.display = "block";
   inputPreview.src = URL.createObjectURL(file);
   overlayPreview.src = data.overlay_b64;
 
   const m = data.metrics;
+  const t = m.thresholds;
   const rows = `
     <tr><th>항목</th><th>값</th><th>정상 기준</th></tr>
-    <tr><td>폴립 면적 비율</td><td>${(m.polyp_area_ratio * 100).toFixed(2)}%</td><td><${(m.thresholds.polyp_area_ratio * 100).toFixed(1)}%</td></tr>
-    <tr><td>분비물 비율</td><td>${(m.secretion_ratio * 100).toFixed(2)}%</td><td><${(m.thresholds.secretion_ratio * 100).toFixed(1)}%</td></tr>
-    <tr><td>기도 개방 비율</td><td>${(m.airway_ratio * 100).toFixed(2)}%</td><td>>${(m.thresholds.airway_ratio_min * 100).toFixed(1)}%</td></tr>
-    <tr><td>총 위험도 점수</td><td>${m.risk_score}</td><td>-</td></tr>
+    <tr><td>점막 색</td><td>${m.color_label}</td><td>분홍색 (정상)</td></tr>
+    <tr><td>폴립 면적 비율</td><td>${(m.polyp_area_ratio * 100).toFixed(2)}%</td><td><${(t.polyp_area_ratio * 100).toFixed(1)}%</td></tr>
+    <tr><td>분비물 비율</td><td>${(m.secretion_ratio * 100).toFixed(2)}%</td><td><${(t.secretion_ratio * 100).toFixed(1)}%</td></tr>
+    <tr><td>기도 개방 비율</td><td>${(m.airway_ratio * 100).toFixed(2)}%</td><td>>${(t.airway_ratio_min * 100).toFixed(1)}%</td></tr>
+    <tr><td>총 위험도</td><td>${m.risk_score}</td><td>-</td></tr>
     <tr><td>AI 요약 판단</td><td colspan="2"><b>${m.summary_label}</b></td></tr>
   `;
   metricTable.innerHTML = rows;
 
-  drawChart(m);
+  drawLineChart(m);
 }
 
-// =============================
-// 📈 그래프 표시 (정상 대비 시각화)
-// =============================
-function drawChart(m) {
+// ✅ Line Chart + 정상범위 밴드형 표시
+function drawLineChart(m) {
   const ctx = chartCanvas.getContext("2d");
   if (chart) chart.destroy();
 
+  const labels = ["폴립 비율", "분비물 비율", "기도 개방 비율"];
+  const values = [
+    m.polyp_area_ratio * 100,
+    m.secretion_ratio * 100,
+    m.airway_ratio * 100,
+  ];
+
+  const lower = [0, 0, m.thresholds.airway_ratio_min * 100];
+  const upper = [
+    m.thresholds.polyp_area_ratio * 100,
+    m.thresholds.secretion_ratio * 100,
+    100,
+  ];
+
   chart = new Chart(ctx, {
-    type: "bar",
+    type: "line",
     data: {
-      labels: ["Polyp", "Secretion", "Airway"],
+      labels,
       datasets: [
         {
-          label: "현재 비율 (%)",
-          data: [
-            m.polyp_area_ratio * 100,
-            m.secretion_ratio * 100,
-            m.airway_ratio * 100,
-          ],
-          backgroundColor: ["#4caf50", "#03a9f4", "#ff9800"],
+          label: "측정값 (%)",
+          data: values,
+          borderColor: "#2196f3",
+          backgroundColor: "#2196f3",
+          fill: false,
+          tension: 0.3,
+          pointRadius: 6,
+          pointBackgroundColor: "#2196f3",
         },
         {
-          label: "정상 기준 (%)",
-          data: [
-            m.thresholds.polyp_area_ratio * 100,
-            m.thresholds.secretion_ratio * 100,
-            m.thresholds.airway_ratio_min * 100,
-          ],
-          backgroundColor: ["#a5d6a7", "#81d4fa", "#ffcc80"],
+          label: "정상 범위",
+          data: upper.map((u, i) => (u + lower[i]) / 2),
+          fill: {
+            target: { value: lower },
+            above: "rgba(144, 238, 144, 0.4)",
+            below: "rgba(255, 99, 71, 0.2)",
+          },
+          borderColor: "rgba(144,238,144,0)",
+          pointRadius: 0,
+          tension: 0.3,
         },
       ],
     },
@@ -123,24 +113,16 @@ function drawChart(m) {
       responsive: true,
       plugins: {
         legend: { position: "top" },
-        title: { display: true, text: "정상 대비 비율 비교 그래프" },
+        title: { display: true, text: "정상 범위 대비 실측 그래프" },
       },
       scales: {
         y: {
           beginAtZero: true,
           title: { display: true, text: "비율 (%)" },
-          ticks: { stepSize: 10 },
+          min: 0,
+          max: 100,
         },
       },
     },
   });
 }
-
-// =============================
-// ✅ 정상 기준 (프론트 고정값)
-// =============================
-const THRESHOLD = {
-  polyp_area_ratio: 0.02,
-  secretion_ratio: 0.05,
-  airway_ratio_min: 0.15,
-};
