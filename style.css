@@ -1,70 +1,61 @@
 body {
-  font-family: 'Noto Sans KR', sans-serif;
-  background: #f8fafc;
-  margin: 0;
-  padding: 0;
+  background-color: #f4f6f8;
+  font-family: 'Pretendard', sans-serif;
+  text-align: center;
   color: #222;
 }
 
 .container {
-  max-width: 1000px;
-  margin: auto;
-  padding: 20px;
-  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px 40px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-header {
-  background: #003366;
-  color: #fff;
-  padding: 20px;
+.preview, .segmented {
+  width: 80%;
   border-radius: 10px;
-}
-
-.upload-section {
-  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 button {
-  background: #0059b3;
+  background-color: #1e73be;
   color: #fff;
-  padding: 10px 25px;
+  padding: 10px 20px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-}
-button:hover { background: #003366; }
-
-.result-layout {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
+  font-size: 16px;
 }
 
-.graph-container, .table-container {
-  flex: 1;
-  min-width: 300px;
-  max-width: 450px;
+button:hover {
+  background-color: #155a96;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border-radius: 8px;
+  margin-top: 10px;
 }
-th, td {
+
+table, th, td {
   border: 1px solid #ddd;
-  padding: 6px;
 }
+
 th {
-  background: #003366;
+  background-color: #1e73be;
   color: white;
+  padding: 8px;
 }
-.image-preview img {
-  width: 70%;
-  max-width: 400px;
-  margin-top: 15px;
-  border-radius: 10px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+
+td {
+  padding: 8px;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin-top: 20px;
 }
