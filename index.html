@@ -7,7 +7,6 @@
   <link href="style.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
   <div class="container">
     <header>
@@ -16,8 +15,8 @@
     </header>
 
     <section class="upload-section">
-      <label for="imageUpload" class="upload-label">📷 내시경 이미지 업로드</label>
-      <input type="file" id="imageUpload" accept="image/*" />
+      <label for="imageUpload">📸 내시경 이미지 업로드</label>
+      <input type="file" id="imageUpload" accept="image/*">
       <button id="analyzeBtn">AI 분석 시작</button>
     </section>
 
@@ -33,15 +32,15 @@
         </div>
       </div>
 
-      <h3>🔍 병변 부위 시각화</h3>
+      <h3>🔍 병변 시각화 이미지</h3>
       <div class="image-preview">
-        <img id="segmentationResult" alt="분석된 이미지" />
+        <img id="segmentationResult" alt="AI 결과 이미지" />
       </div>
     </section>
   </div>
 
   <footer>
-    <p>ⓒ Yonsei University Hearing Rehabilitation Institute. All rights reserved.</p>
+    <p>ⓒ Yonsei University Hearing Rehabilitation Institute</p>
   </footer>
 
   <script src="script.js"></script>
