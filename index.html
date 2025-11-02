@@ -1,52 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>연세대학교 청각재활연구소 - 비내시경 AI 분석</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nasal AI Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <h1>👃 비강 내시경 분석 도구</h1>
 
-<body>
-  <header>
-    <h1>연세대학교 청각재활연구소</h1>
-    <h2>비내시경 영상 AI 기반 분석 시스템</h2>
-  </header>
+    <input type="file" id="fileInput" accept="image/*" />
+    <button id="analyzeBtn">분석하기</button>
 
-  <main>
-    <section id="upload-section">
-      <label for="file-input">📸 내시경 이미지 업로드</label>
-      <input type="file" id="file-input" accept="image/*" />
-      <button id="analyze-btn">AI 분석 시작</button>
-    </section>
+    <div id="resultContainer" class="hidden">
+      <h2>📊 분석 결과</h2>
+      <img id="resultImage" alt="분석 결과" />
 
-    <section id="result-section" style="display:none;">
-      <h3>📊 분석 결과</h3>
-      <div id="result-grid">
-        <div>
-          <h4>입력 이미지</h4>
-          <img id="input-preview" />
-        </div>
-        <div>
-          <h4>AI 분석 시각화</h4>
-          <img id="overlay-preview" />
-        </div>
+      <div class="metrics">
+        <p id="summary"></p>
+        <p id="colorLabel"></p>
+        <p id="riskScore"></p>
       </div>
 
-      <div id="metrics">
-        <canvas id="chart" width="400" height="200"></canvas>
-        <table id="metric-table"></table>
-      </div>
-    </section>
+      <canvas id="chartCanvas" width="600" height="300"></canvas>
+    </div>
 
-    <div id="loading" style="display:none;">🤖 AI 분석 중입니다...</div>
-  </main>
-
-  <footer>
-    <p>© 2025 Yonsei Hearing Rehabilitation Institute</p>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
-</body>
+    <script src="/static/script.js"></script>
+  </body>
 </html>
