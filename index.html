@@ -1,110 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>연세대학교 청각재활연구소 — Nasal AI</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연세대학교 청각재활연구소 비강 AI 분석기</title>
   <link rel="icon" href="favicon.ico" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=5" />
+  <script defer src="script.js?v=5"></script>
 </head>
+
 <body>
-  <header class="header">
-    <div class="brand">
-      <img src="logo_yonsei_ent.svg" alt="Yonsei ENT" class="logo" />
-      <div>
-        <h1 class="title">연세대학교 청각재활연구소</h1>
-        <p class="subtitle">비강 내시경 AI 판독 (Frontend)</p>
-      </div>
-    </div>
-    <a class="gh" href="https://github.com/okas2022/nasal-ai-frontend" target="_blank">GitHub</a>
+  <header>
+    <img src="logo_yonsei_ent.svg" alt="Yonsei ENT Logo" class="logo" />
+    <h1>연세대학교 청각재활연구소 비강 AI 분석기</h1>
+    <p class="subtitle">AI 기반 비강 점막 및 용종 자동 분석 시스템 (Frontend)</p>
   </header>
 
-  <main class="container">
-    <!-- 업로드 카드 -->
-    <section class="card">
-      <h2>비강 이미지 업로드</h2>
-      <div class="uploader">
-        <input id="fileInput" type="file" accept="image/*" />
-        <button id="analyzeBtn">AI 분석 시작</button>
-      </div>
-      <p id="hint" class="hint">JPG/PNG 내시경 이미지를 선택한 뒤 ‘AI 분석 시작’을 눌러주세요.</p>
+  <main>
+    <section class="upload-section">
+      <h2>📤 비강 내시경 이미지 업로드</h2>
+      <input type="file" id="imageUpload" accept="image/*" />
+      <button id="analyzeBtn">AI 분석 시작</button>
     </section>
 
-    <!-- 미리보기 & 오버레이 -->
-    <section class="grid grid-2 card">
-      <div>
-        <h3>입력 이미지</h3>
-        <img id="previewImg" class="preview" alt="preview" />
-      </div>
-      <div>
-        <h3>AI 오버레이</h3>
-        <img id="overlayImg" class="preview" alt="overlay" />
+    <section class="preview-section">
+      <h2>🩺 업로드된 이미지</h2>
+      <div id="imagePreviewContainer">
+        <img id="imagePreview" src="" alt="업로드 이미지 미리보기" />
       </div>
     </section>
 
-    <!-- 결과 카드 -->
-    <section class="card">
-      <h2>AI 분석 결과</h2>
-      <div id="resultBadges" class="badges hidden"></div>
-
-      <div class="kpi">
-        <div class="kpi-item">
-          <div class="kpi-label">진단</div>
-          <div id="kpiDiagnosis" class="kpi-value">-</div>
-        </div>
-        <div class="kpi-item">
-          <div class="kpi-label">확신도</div>
-          <div id="kpiConf" class="kpi-value">-</div>
-        </div>
-        <div class="kpi-item">
-          <div class="kpi-label">비후 등급</div>
-          <div id="kpiHyper" class="kpi-value">-</div>
-        </div>
-        <div class="kpi-item">
-          <div class="kpi-label">협착도</div>
-          <div id="kpiNarrow" class="kpi-value">-</div>
-        </div>
-      </div>
-
-      <!-- 표 -->
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>지표</th>
-              <th>값</th>
-              <th>설명</th>
-            </tr>
-          </thead>
-          <tbody id="metricsBody">
-            <!-- JS에서 채움 -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- 레이더 차트 -->
-    <section class="card">
-      <h2>특징 레이더 차트</h2>
-      <canvas id="radarCanvas" width="420" height="360"></canvas>
-    </section>
-
-    <!-- 디버그 -->
-    <section class="card">
-      <h2>디버그 로그 (Raw Response)</h2>
-      <pre id="debugBox" class="debug"></pre>
+    <section class="result-section">
+      <h2>📊 AI 분석 결과</h2>
+      <div id="resultText">아직 분석이 수행되지 않았습니다.</div>
+      <canvas id="colorChart" width="400" height="200"></canvas>
+      <div id="summaryTableContainer"></div>
     </section>
   </main>
 
-  <footer class="footer">
-    © Yonsei Hearing Rehabilitation Institute · Audiso
+  <footer>
+    <p>© 2025 연세대학교 청각재활연구소 | Nasal AI Frontend</p>
   </footer>
 
-  <script src="script.js"></script>
+  <!-- Chart.js 라이브러리 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // 경로 자동 감지 (CSS/JS 파일 캐시 문제 방지)
+    document.addEventListener("DOMContentLoaded", () => {
+      const css = document.querySelector('link[rel="stylesheet"]');
+      if (css) {
+        css.href = css.href.split('?')[0] + '?v=' + Date.now();
+      }
+      const js = document.querySelector('script[src*="script.js"]');
+      if (js) {
+        js.src = js.src.split('?')[0] + '?v=' + Date.now();
+      }
+    });
+  </script>
 </body>
 </html>
