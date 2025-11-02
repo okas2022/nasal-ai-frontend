@@ -35,66 +35,89 @@ document.addEventListener("DOMContentLoaded", () => {
         body: formData,
       });
       const data = await res.json();
-      console.log("✅ 결과:", data);
+
+      console.log("✅ 백엔드 응답:", data);
+
+      // 실수로 변환
+      const ratios = {};
+      const normals = {};
+      const deviations = {};
+      for (const key of Object.keys(data.ratios)) {
+        ratios[key] = parseFloat(data.ratios[key]) * 100;
+        normals[key] = parseFloat(data.normal_cutoff[key]) * 100;
+        deviations[key] = parseFloat(data.deviation[key]) * 100;
+      }
 
       // 결과 텍스트
       resultText.innerHTML = `
         <b>진단 결과:</b> ${data.diagnosis}<br>
-        <b>위험도 지수:</b> ${(data.risk_index * 100).toFixed(1)}%
+        <b>위험도 지수:</b> ${(parseFloat(data.risk_index) * 100).toFixed(1)}%
       `;
 
       // 표 구성
       resultTable.innerHTML = `
         <tr><th>항목</th><th>실측(%)</th><th>정상컷(%)</th><th>편차(%)</th></tr>
-        ${Object.keys(data.ratios)
+        ${Object.keys(ratios)
           .map((key) => {
-            const ratio = (data.ratios[key] * 100).toFixed(1);
-            const normal = (data.normal_cutoff[key] * 100).toFixed(1);
-            const dev = (data.deviation[key] * 100).toFixed(1);
-            const color = dev > 0 ? "#ff6666" : "#66cc66";
+            const color = deviations[key] > 0 ? "#ff6666" : "#66cc66";
             return `<tr>
               <td>${key}</td>
-              <td>${ratio}</td>
-              <td>${normal}</td>
-              <td style="color:${color};font-weight:bold;">${dev}</td>
+              <td>${ratios[key].toFixed(1)}</td>
+              <td>${normals[key].toFixed(1)}</td>
+              <td style="color:${color};font-weight:bold;">${deviations[key].toFixed(1)}</td>
             </tr>`;
           })
           .join("")}
       `;
 
-      // 그래프
-      const keys = Object.keys(data.ratios);
-      const actual = keys.map((k) => data.ratios[k] * 100);
-      const normal = keys.map((k) => data.normal_cutoff[k] * 100);
+      // 캔버스 초기화
+      const ctx = chartCanvas.getContext("2d");
+      if (barChart) {
+        barChart.destroy();
+      }
 
-      if (barChart) barChart.destroy();
-      barChart = new Chart(chartCanvas, {
+      // 그래프 생성
+      barChart = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: keys,
+          labels: Object.keys(ratios),
           datasets: [
             {
-              label: "실제 측정",
-              data: actual,
+              label: "실측값 (%)",
+              data: Object.values(ratios),
               backgroundColor: "rgba(54, 162, 235, 0.5)",
               borderColor: "rgba(54, 162, 235, 1)",
               borderWidth: 1,
             },
             {
-              label: "정상 기준선",
-              data: normal,
+              label: "정상 기준선 (%)",
+              data: Object.values(normals),
               backgroundColor: "rgba(255, 99, 132, 0.3)",
               borderColor: "rgba(255, 99, 132, 1)",
-              borderWidth: 1,
+              borderWidth: 2,
+              type: "line", // ✅ 기준선을 선그래프로 표시
+              fill: false,
+              pointRadius: 5,
             },
           ],
         },
         options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "top" },
+            title: {
+              display: true,
+              text: "정상 대비 구조별 비율 비교",
+            },
+          },
           scales: {
             y: {
               beginAtZero: true,
-              title: { display: true, text: "비율 (%)" },
-              max: 60,
+              suggestedMax: 50,
+              title: {
+                display: true,
+                text: "비율 (%)",
+              },
             },
           },
         },
