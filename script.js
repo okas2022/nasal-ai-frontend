@@ -1,158 +1,111 @@
-// === 설정: 백엔드 URL 저장/불러오기 ===
-const backendInput = document.getElementById('backend');
-const saveBtn = document.getElementById('saveBackend');
-const ANALYZE = document.getElementById('analyzeBtn');
-const STATUS = document.getElementById('status');
-const FILE = document.getElementById('fileInput');
-const PREVIEW = document.getElementById('preview');
-const OVERLAY = document.getElementById('overlay');
-const TBL = document.getElementById('metricsTable');
-const ELAPSED = document.getElementById('elapsed');
-const LABEL = document.getElementById('summaryLabel');
-const RISK = document.getElementById('riskScore');
+const backend = "https://okas2000-nasal-ai-backend.hf.space"; // 👈 Hugging Face 백엔드 주소
 
-let BAR_CHART = null;
-function getBackend(){
-  return backendInput.value.trim() || localStorage.getItem('nasal_backend') || '';
-}
-function setBackend(url){
-  backendInput.value = url;
-  localStorage.setItem('nasal_backend', url);
-}
-saveBtn.onclick = () => {
-  setBackend(backendInput.value.trim());
-  STATUS.textContent = '백엔드 URL 저장 완료';
-  setTimeout(()=> STATUS.textContent='', 1200);
-};
+const fileInput = document.getElementById("file-input");
+const analyzeBtn = document.getElementById("analyze-btn");
+const loading = document.getElementById("loading");
+const resultSection = document.getElementById("result-section");
+const overlayPreview = document.getElementById("overlay-preview");
+const inputPreview = document.getElementById("input-preview");
+const metricTable = document.getElementById("metric-table");
+const chartCanvas = document.getElementById("chart");
 
-// 초기화
-(function init(){
-  const saved = localStorage.getItem('nasal_backend') || '';
-  backendInput.value = saved;
-})();
+let chart;
 
-// 파일 프리뷰
-FILE.addEventListener('change', () => {
-  const f = FILE.files[0];
-  if(!f){ PREVIEW.src=''; return; }
-  PREVIEW.src = URL.createObjectURL(f);
+// 📤 분석 요청
+analyzeBtn.addEventListener("click", async () => {
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("이미지를 업로드해주세요!");
+    return;
+  }
+
+  loading.style.display = "block";
+  resultSection.style.display = "none";
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${backend}/api/predict`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("서버 응답 오류: " + res.status);
+
+    const data = await res.json();
+    showResults(file, data);
+  } catch (err) {
+    alert("❌ 분석 실패: " + err.message);
+    console.error(err);
+  } finally {
+    loading.style.display = "none";
+  }
 });
 
-// 차트 렌더러
-function renderBarChart(metrics){
-  const ctx = document.getElementById('barChart').getContext('2d');
-  const vals = [
-    metrics.polyp_area_ratio,
-    metrics.secretion_ratio,
-    metrics.airway_ratio
-  ];
-  const labels = ['폴립 면적비', '분비물 비율', '기도 개방비'];
-  const thresholds = [
-    metrics.thresholds.polyp_area_ratio,
-    metrics.thresholds.secretion_ratio,
-    metrics.thresholds.airway_ratio_min
-  ];
+// 📊 결과 표시
+function showResults(file, data) {
+  resultSection.style.display = "block";
+  inputPreview.src = URL.createObjectURL(file);
+  overlayPreview.src = data.overlay_b64;
 
-  if(BAR_CHART){ BAR_CHART.destroy(); }
-  BAR_CHART = new Chart(ctx, {
-    type: 'bar',
+  const m = data.metrics;
+  const rows = `
+    <tr><th>항목</th><th>값</th><th>정상 기준</th></tr>
+    <tr><td>폴립 면적 비율</td><td>${(m.polyp_area_ratio * 100).toFixed(2)}%</td><td><${THRESHOLD.polyp_area_ratio * 100}%</td></tr>
+    <tr><td>분비물 비율</td><td>${(m.secretion_ratio * 100).toFixed(2)}%</td><td><${THRESHOLD.secretion_ratio * 100}%</td></tr>
+    <tr><td>기도 개방 비율</td><td>${(m.airway_ratio * 100).toFixed(2)}%</td><td>>${THRESHOLD.airway_ratio_min * 100}%</td></tr>
+    <tr><td>총 위험도</td><td>${m.risk_score}</td><td>-</td></tr>
+    <tr><td>AI 요약 판단</td><td colspan="2"><b>${m.summary_label}</b></td></tr>
+  `;
+  metricTable.innerHTML = rows;
+
+  drawChart(m);
+}
+
+// 📈 그래프 표시
+function drawChart(m) {
+  const ctx = chartCanvas.getContext("2d");
+  if (chart) chart.destroy();
+
+  chart = new Chart(ctx, {
+    type: "bar",
     data: {
-      labels,
-      datasets: [{
-        label: '측정치',
-        data: vals,
-      }]
+      labels: ["Polyp", "Secretion", "Airway"],
+      datasets: [
+        {
+          label: "비율 (%)",
+          data: [
+            m.polyp_area_ratio * 100,
+            m.secretion_ratio * 100,
+            m.airway_ratio * 100,
+          ],
+          backgroundColor: ["#4caf50", "#03a9f4", "#ff9800"],
+        },
+        {
+          label: "정상 기준",
+          data: [
+            m.thresholds.polyp_area_ratio * 100,
+            m.thresholds.secretion_ratio * 100,
+            m.thresholds.airway_ratio_min * 100,
+          ],
+          backgroundColor: ["#9ccc65", "#81d4fa", "#ffcc80"],
+        },
+      ],
     },
     options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          suggestedMax: Math.max(...vals, ...thresholds) * 1.4 || 0.5
-        }
-      },
+      responsive: true,
       plugins: {
-        legend: { display: false },
-        annotation: {
-          annotations: {
-            cut1: { type:'line', scaleID:'y', value: thresholds[0], borderWidth:2, borderColor:'#ff6b6b', label:{display:true, content:'폴립 컷오프'} },
-            cut2: { type:'line', scaleID:'y', value: thresholds[1], borderWidth:2, borderColor:'#ffd166', label:{display:true, content:'분비물 컷오프'} },
-            cut3: { type:'line', scaleID:'y', value: thresholds[2], borderWidth:2, borderColor:'#5aa0ff', label:{display:true, content:'기도 최소비율'} }
-          }
-        }
-      }
+        legend: { position: "top" },
+        title: { display: true, text: "정상 대비 비율 비교 (%)" },
+      },
     },
-    plugins: [{
-      id: 'threshold-lines',
-      afterDatasetsDraw: (chart) => {
-        // Chart.js v4에서 annotation 플러그인 없이 컷오프 라인 간단히 그리기
-        const {ctx, chartArea:{top,bottom,left,right}, scales:{y}} = chart;
-        ctx.save();
-        const draws = [
-          { value: thresholds[0], color:'#ff6b6b' },
-          { value: thresholds[1], color:'#ffd166' },
-          { value: thresholds[2], color:'#5aa0ff' }
-        ];
-        draws.forEach(d=>{
-          const yC = y.getPixelForValue(d.value);
-          ctx.strokeStyle = d.color; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.moveTo(left, yC); ctx.lineTo(right, yC); ctx.stroke();
-        });
-        ctx.restore();
-      }
-    }]
   });
 }
 
-// 표 갱신
-function renderTable(metrics){
-  const rows = [
-    ['폴립 면적비', metrics.polyp_area_ratio, metrics.thresholds.polyp_area_ratio],
-    ['분비물 비율', metrics.secretion_ratio, metrics.thresholds.secretion_ratio],
-    ['기도 개방비', metrics.airway_ratio, `≥ ${metrics.thresholds.airway_ratio_min}`]
-  ];
-  TBL.innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td>${(r[1]*100).toFixed(2)}%</td><td>${typeof r[2]==='number' ? (r[2]*100).toFixed(1)+'%' : r[2]}</td></tr>`).join('');
-}
-
-// 분석
-ANALYZE.addEventListener('click', async () => {
-  const backend = getBackend();
-  if(!backend){ STATUS.textContent='백엔드 URL을 입력/저장하세요.'; return; }
-  const f = FILE.files[0];
-  if(!f){ STATUS.textContent='이미지를 선택하세요.'; return; }
-
-  STATUS.textContent = '🤖 AI 분석중...';
-  ANALYZE.disabled = true;
-
-  try{
-    const fd = new FormData();
-    fd.append('file', f);
-
-    const res = await fetch(`${backend.replace(/\/+$/,'')}/api/predict`, {
-      method: 'POST',
-      body: fd
-    });
-    if(!res.ok){
-      throw new Error(`서버 응답 오류: ${res.status}`);
-    }
-    const data = await res.json();
-    if(!data.ok){
-      throw new Error(data.error || '분석 실패');
-    }
-
-    OVERLAY.src = data.overlay_b64 || '';
-    ELAPSED.textContent = `${data.elapsed_ms} ms`;
-    LABEL.textContent = data.metrics?.summary_label ?? '-';
-    RISK.textContent = data.metrics?.risk_score ?? '-';
-
-    renderBarChart(data.metrics);
-    renderTable(data.metrics);
-
-    STATUS.textContent = '✅ 분석 완료';
-    setTimeout(()=> STATUS.textContent='', 1200);
-  }catch(err){
-    console.error(err);
-    STATUS.textContent = `❌ 분석 실패: ${err.message}`;
-  }finally{
-    ANALYZE.disabled = false;
-  }
-});
+// 백엔드에서 받은 정상 기준값
+const THRESHOLD = {
+  polyp_area_ratio: 0.02,
+  secretion_ratio: 0.05,
+  airway_ratio_min: 0.15,
+};
