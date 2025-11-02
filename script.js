@@ -1,20 +1,19 @@
-console.log("✅ script.js loaded");
-
 document.addEventListener("DOMContentLoaded", () => {
   const uploadInput = document.getElementById("imageUpload");
   const analyzeBtn = document.getElementById("analyzeBtn");
   const preview = document.getElementById("imagePreview");
   const resultText = document.getElementById("resultText");
-  const riskChartCanvas = document.getElementById("riskChart");
-  const segmentationImg = document.getElementById("segmentationResult");
+  const resultTable = document.getElementById("resultTable");
+  const chartCanvas = document.getElementById("riskChart");
+  const segmentedImg = document.getElementById("segmentationResult");
 
-  let riskChart = null;
+  let barChart = null;
 
-  uploadInput.addEventListener("change", (event) => {
-    const file = event.target.files[0];
+  uploadInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => (preview.src = e.target.result);
+      reader.onload = (event) => (preview.src = event.target.result);
       reader.readAsDataURL(file);
     }
   });
@@ -23,62 +22,91 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = uploadInput.files[0];
     if (!file) return alert("이미지를 선택하세요!");
 
+    resultText.textContent = "🧠 AI 분석 중...";
+    resultTable.innerHTML = "";
+    segmentedImg.src = "";
+
     const formData = new FormData();
     formData.append("file", file);
 
-    resultText.textContent = "🧠 AI 분석 중...";
-    segmentationImg.src = "";
-
     try {
-      const response = await fetch("https://okas2000-nasal-ai-backend.hf.space/api/predict", {
+      const res = await fetch("https://okas2000-nasal-ai-backend.hf.space/api/predict", {
         method: "POST",
         body: formData,
       });
+      const data = await res.json();
+      console.log("✅ 결과:", data);
 
-      const data = await response.json();
-      console.log("✅ AI Response:", data);
-
+      // 결과 텍스트
       resultText.innerHTML = `
-        <b>진단:</b> ${data.diagnosis} <br>
-        <b>용종 가능성:</b> ${(data.polyp_score * 100).toFixed(1)}% <br>
-        <b>전체 위험도:</b> ${(data.risk_index * 100).toFixed(1)}%
+        <b>진단 결과:</b> ${data.diagnosis}<br>
+        <b>위험도 지수:</b> ${(data.risk_index * 100).toFixed(1)}%
       `;
 
-      // 시각화 그래프 (정상 대비 deviation)
-      if (riskChart) riskChart.destroy();
-      riskChart = new Chart(riskChartCanvas, {
+      // 표 구성
+      resultTable.innerHTML = `
+        <tr><th>항목</th><th>실측(%)</th><th>정상컷(%)</th><th>편차(%)</th></tr>
+        ${Object.keys(data.ratios)
+          .map((key) => {
+            const ratio = (data.ratios[key] * 100).toFixed(1);
+            const normal = (data.normal_cutoff[key] * 100).toFixed(1);
+            const dev = (data.deviation[key] * 100).toFixed(1);
+            const color = dev > 0 ? "#ff6666" : "#66cc66";
+            return `<tr>
+              <td>${key}</td>
+              <td>${ratio}</td>
+              <td>${normal}</td>
+              <td style="color:${color};font-weight:bold;">${dev}</td>
+            </tr>`;
+          })
+          .join("")}
+      `;
+
+      // 그래프
+      const keys = Object.keys(data.ratios);
+      const actual = keys.map((k) => data.ratios[k] * 100);
+      const normal = keys.map((k) => data.normal_cutoff[k] * 100);
+
+      if (barChart) barChart.destroy();
+      barChart = new Chart(chartCanvas, {
         type: "bar",
         data: {
-          labels: ["Redness", "Narrowness", "Brightness", "Green Ratio", "Polyp"],
-          datasets: [{
-            label: "정상 대비 편차 (Deviation)",
-            data: [
-              data.deviation.redness,
-              data.deviation.narrowness,
-              data.deviation.brightness,
-              data.deviation.green_ratio,
-              data.polyp_score
-            ],
-            backgroundColor: ["#ff6b6b", "#ffa94d", "#4dabf7", "#69db7c", "#d6336c"]
-          }]
+          labels: keys,
+          datasets: [
+            {
+              label: "실제 측정",
+              data: actual,
+              backgroundColor: "rgba(54, 162, 235, 0.5)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+            },
+            {
+              label: "정상 기준선",
+              data: normal,
+              backgroundColor: "rgba(255, 99, 132, 0.3)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 1,
+            },
+          ],
         },
         options: {
           scales: {
             y: {
               beginAtZero: true,
-              max: 1
-            }
-          }
-        }
+              title: { display: true, text: "비율 (%)" },
+              max: 60,
+            },
+          },
+        },
       });
 
+      // segmentation 이미지 표시
       if (data.segmented_image_base64) {
-        segmentationImg.src = "data:image/png;base64," + data.segmented_image_base64;
+        segmentedImg.src = "data:image/png;base64," + data.segmented_image_base64;
       }
-
     } catch (err) {
       console.error(err);
-      resultText.textContent = "❌ 분석 중 오류 발생!";
+      resultText.textContent = "❌ 분석 중 오류 발생";
     }
   });
 });
