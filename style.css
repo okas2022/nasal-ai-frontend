@@ -1,7 +1,6 @@
 body {
   font-family: 'Noto Sans KR', sans-serif;
   margin: 0;
-  padding: 0;
   background: #f6f8fa;
   color: #222;
   text-align: center;
@@ -18,56 +17,29 @@ header {
   margin-bottom: 10px;
 }
 
-h1 {
-  font-size: 1.8em;
-}
-
 main {
   padding: 20px;
 }
 
-input[type="file"] {
-  margin: 10px;
-  padding: 5px;
-}
-
 button {
   padding: 10px 20px;
-  border: none;
-  background-color: #0066cc;
+  background: #0066cc;
   color: white;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1em;
 }
 
-button:hover {
-  background-color: #004d99;
-}
-
-.preview {
+.preview, .segmented {
   margin-top: 15px;
   max-width: 400px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.result-table {
-  margin: 20px auto;
-  border-collapse: collapse;
-  width: 60%;
-  background: #fff;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-}
-
-.result-table th, .result-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-}
-
-footer {
-  background: #003366;
-  color: #fff;
-  padding: 10px 0;
-  margin-top: 30px;
+#riskChart {
+  margin-top: 20px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
