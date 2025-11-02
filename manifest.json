@@ -1,1 +1,11 @@
-{"name": "Audiso Nasal AI Analyzer", "short_name": "NasalAI", "start_url": ".", "display": "standalone"}
+{
+  "name": "Yonsei Nasal AI",
+  "short_name": "Nasal AI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#5aa0ff",
+  "icons": [
+    { "src": "favicon.ico", "sizes": "32x32 48x48 64x64", "type": "image/x-icon" }
+  ]
+}
