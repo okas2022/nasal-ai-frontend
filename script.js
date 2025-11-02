@@ -9,6 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let barChart = null;
 
+  function safeFloat(val) {
+    const num = parseFloat(val);
+    return isNaN(num) ? 0 : num;
+  }
+
   uploadInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -30,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("file", file);
 
     try {
+      // Hugging Face 백엔드 API 주소
       const res = await fetch("https://okas2000-nasal-ai-backend.hf.space/api/predict", {
         method: "POST",
         body: formData,
@@ -38,23 +44,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("✅ 백엔드 응답:", data);
 
-      // 실수로 변환
+      if (!data.ratios || Object.keys(data.ratios).length === 0) {
+        resultText.textContent = "❌ 분석 실패: 데이터가 없습니다.";
+        return;
+      }
+
       const ratios = {};
       const normals = {};
       const deviations = {};
       for (const key of Object.keys(data.ratios)) {
-        ratios[key] = parseFloat(data.ratios[key]) * 100;
-        normals[key] = parseFloat(data.normal_cutoff[key]) * 100;
-        deviations[key] = parseFloat(data.deviation[key]) * 100;
+        ratios[key] = safeFloat(data.ratios[key]) * 100;
+        normals[key] = safeFloat(data.normal_cutoff[key]) * 100;
+        deviations[key] = safeFloat(data.deviation[key]) * 100;
       }
 
-      // 결과 텍스트
+      // 결과 표시
       resultText.innerHTML = `
         <b>진단 결과:</b> ${data.diagnosis}<br>
-        <b>위험도 지수:</b> ${(parseFloat(data.risk_index) * 100).toFixed(1)}%
+        <b>위험도 지수:</b> ${(safeFloat(data.risk_index) * 100).toFixed(1)}%
       `;
 
-      // 표 구성
+      // 표 표시
       resultTable.innerHTML = `
         <tr><th>항목</th><th>실측(%)</th><th>정상컷(%)</th><th>편차(%)</th></tr>
         ${Object.keys(ratios)
@@ -70,13 +80,13 @@ document.addEventListener("DOMContentLoaded", () => {
           .join("")}
       `;
 
-      // 캔버스 초기화
+      // 그래프
       const ctx = chartCanvas.getContext("2d");
       if (barChart) {
         barChart.destroy();
+        ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
       }
 
-      // 그래프 생성
       barChart = new Chart(ctx, {
         type: "bar",
         data: {
@@ -95,9 +105,9 @@ document.addEventListener("DOMContentLoaded", () => {
               backgroundColor: "rgba(255, 99, 132, 0.3)",
               borderColor: "rgba(255, 99, 132, 1)",
               borderWidth: 2,
-              type: "line", // ✅ 기준선을 선그래프로 표시
+              type: "line",
               fill: false,
-              pointRadius: 5,
+              pointRadius: 4,
             },
           ],
         },
@@ -105,25 +115,19 @@ document.addEventListener("DOMContentLoaded", () => {
           responsive: true,
           plugins: {
             legend: { position: "top" },
-            title: {
-              display: true,
-              text: "정상 대비 구조별 비율 비교",
-            },
+            title: { display: true, text: "정상 대비 구조별 비율 비교" },
           },
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: 50,
-              title: {
-                display: true,
-                text: "비율 (%)",
-              },
+              suggestedMax: 60,
+              title: { display: true, text: "비율 (%)" },
             },
           },
         },
       });
 
-      // segmentation 이미지 표시
+      // 분할 이미지 표시
       if (data.segmented_image_base64) {
         segmentedImg.src = "data:image/png;base64," + data.segmented_image_base64;
       }
