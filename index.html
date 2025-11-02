@@ -1,57 +1,110 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>연세대학교 청각재활연구소 비강 AI 분석기 · Audiso Nasal AI Analyzer</title>
-  <link rel="icon" href="favicon.ico">
-  <link rel="stylesheet" href="assets/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>연세대학교 청각재활연구소 — Nasal AI</title>
+
+  <link rel="icon" href="favicon.ico" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <header class="header">
-    <img src="assets/logo_yonsei_ent.svg" alt="Yonsei ENT Lab" height="36" />
-    <h1>연세대학교 청각재활연구소 비강 AI 분석기 <span class="badge">Audiso Nasal AI Analyzer</span></h1>
+    <div class="brand">
+      <img src="logo_yonsei_ent.svg" alt="Yonsei ENT" class="logo" />
+      <div>
+        <h1 class="title">연세대학교 청각재활연구소</h1>
+        <p class="subtitle">비강 내시경 AI 판독 (Frontend)</p>
+      </div>
+    </div>
+    <a class="gh" href="https://github.com/okas2022/nasal-ai-frontend" target="_blank">GitHub</a>
   </header>
 
   <main class="container">
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <input id="fileInput" type="file" accept="image/*">
-        <button id="analyzeBtn" class="btn">AI 분석 시작</button>
-        <span class="subtle">Hugging Face backend: okas2000-nasal-ai-backend</span>
+    <!-- 업로드 카드 -->
+    <section class="card">
+      <h2>비강 이미지 업로드</h2>
+      <div class="uploader">
+        <input id="fileInput" type="file" accept="image/*" />
+        <button id="analyzeBtn">AI 분석 시작</button>
       </div>
-    </div>
+      <p id="hint" class="hint">JPG/PNG 내시경 이미지를 선택한 뒤 ‘AI 분석 시작’을 눌러주세요.</p>
+    </section>
 
-    <div class="grid">
-      <div class="card">
-        <h3 style="margin:6px 0 10px">업로드 이미지 / 오버레이</h3>
-        <div id="preview" class="preview"><div class="subtle">이미지를 업로드하세요.</div></div>
+    <!-- 미리보기 & 오버레이 -->
+    <section class="grid grid-2 card">
+      <div>
+        <h3>입력 이미지</h3>
+        <img id="previewImg" class="preview" alt="preview" />
       </div>
-      <div class="card">
-        <h3 style="margin:6px 0 10px">지표 Radar</h3>
-        <canvas id="radar" height="320"></canvas>
-        <div id="kpi" class="kpi"></div>
+      <div>
+        <h3>AI 오버레이</h3>
+        <img id="overlayImg" class="preview" alt="overlay" />
       </div>
-    </div>
+    </section>
 
-    <div class="card" style="margin-top:16px">
-      <h3 style="margin:6px 0 10px">상세 지표</h3>
-      <div id="detailTable"></div>
-    </div>
+    <!-- 결과 카드 -->
+    <section class="card">
+      <h2>AI 분석 결과</h2>
+      <div id="resultBadges" class="badges hidden"></div>
 
-    <div class="helper" style="margin-top:16px">
-      <strong>결과 해석 도움말</strong><br>
-      · <b>비용종(Nasal Polyp)</b>: 둥글고 회백색, 원형도↑, 붉은색↓<br>
-      · <b>하비갑개 비후</b>: 길쭉한 구조, 세장비↑, 붉은색↑<br>
-      · <b>협착도</b>: 비강 통로 면적이 작을수록 협착 ↑
-    </div>
+      <div class="kpi">
+        <div class="kpi-item">
+          <div class="kpi-label">진단</div>
+          <div id="kpiDiagnosis" class="kpi-value">-</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">확신도</div>
+          <div id="kpiConf" class="kpi-value">-</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">비후 등급</div>
+          <div id="kpiHyper" class="kpi-value">-</div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-label">협착도</div>
+          <div id="kpiNarrow" class="kpi-value">-</div>
+        </div>
+      </div>
 
-    <footer>ⓒ Audiso · Yonsei Univ. ENT Lab · 2025</footer>
+      <!-- 표 -->
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>지표</th>
+              <th>값</th>
+              <th>설명</th>
+            </tr>
+          </thead>
+          <tbody id="metricsBody">
+            <!-- JS에서 채움 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 레이더 차트 -->
+    <section class="card">
+      <h2>특징 레이더 차트</h2>
+      <canvas id="radarCanvas" width="420" height="360"></canvas>
+    </section>
+
+    <!-- 디버그 -->
+    <section class="card">
+      <h2>디버그 로그 (Raw Response)</h2>
+      <pre id="debugBox" class="debug"></pre>
+    </section>
   </main>
 
-  <script src="assets/script.js"></script>
+  <footer class="footer">
+    © Yonsei Hearing Rehabilitation Institute · Audiso
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
