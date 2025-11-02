@@ -26,14 +26,12 @@
       <h2>🧠 AI 분석 결과</h2>
       <div id="resultText">분석 결과가 여기에 표시됩니다.</div>
 
-      <table id="resultTable" class="result-table">
-        <thead>
-          <tr><th>항목</th><th>결과</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <canvas id="riskChart" width="400" height="300"></canvas>
 
-      <canvas id="resultChart" width="400" height="300"></canvas>
+      <div id="segmentationContainer">
+        <h3>🔍 병변 부위 시각화</h3>
+        <img id="segmentationResult" alt="분석 결과 시각화" class="segmented" />
+      </div>
     </section>
   </main>
 
@@ -41,7 +39,6 @@
     <p>ⓒ Yonsei University Hearing Rehabilitation Research Institute</p>
   </footer>
 
-  <!-- ✅ JS 연결 -->
   <script defer src="./script.js"></script>
 </body>
 </html>
