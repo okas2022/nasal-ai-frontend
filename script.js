@@ -1,41 +1,28 @@
-// =====================================================
-// 🎯 Yonsei University Nasal AI Analyzer Frontend Script
-// =====================================================
+// ==========================
+// Yonsei Nasal AI Frontend
+// ==========================
 
-// ⚙️ 1️⃣ CONFIGURATION — 백엔드 주소 지정
-// Hugging Face Space에서 Flask 백엔드를 실행 중이라면
-// 아래 BASE_URL에 Space 주소를 정확히 입력하세요.
-// 예: const BASE_URL = "https://okas2022-nasal-ai-backend.hf.space";
-//
-// 만약 프론트엔드(index.html, script.js)가 같은 서버(Docker 내)에서 실행된다면
-// const BASE_URL = "";  로 두면 됩니다.
-const BASE_URL = ""; // 동일 서버에서 실행 시 공백 유지
+// Hugging Face 백엔드 주소 입력 (Space 이름 맞게 수정)
+const BASE_URL = "https://okas2000-nasal-ai-backend.hf.space";
 
-// ⚙️ 2️⃣ 헬퍼 함수
 const $ = (id) => document.getElementById(id);
 let chart;
 
-// ⚙️ 3️⃣ 버튼 클릭 이벤트
 $("analyzeBtn").addEventListener("click", async () => {
   const file = $("imageUpload").files[0];
   if (!file) {
-    alert("📸 내시경 이미지를 업로드하세요!");
+    alert("📸 이미지를 선택하세요!");
     return;
   }
 
-  $("status").textContent = "🧠 AI 분석 중입니다...";
+  $("status").textContent = "🧠 분석 중...";
   $("summary").textContent = "분석 중...";
 
-  // 전송할 데이터 준비
   const fd = new FormData();
   fd.append("file", file);
 
   try {
-    // Hugging Face 백엔드 URL 자동 선택
-    const endpoint = BASE_URL ? `${BASE_URL}/analyze` : `/analyze`;
-
-    // POST 요청 (Flask의 /analyze로 전송)
-    const res = await fetch(endpoint, {
+    const res = await fetch(`${BASE_URL}/analyze`, {
       method: "POST",
       body: fd,
     });
@@ -44,16 +31,8 @@ $("analyzeBtn").addEventListener("click", async () => {
 
     const data = await res.json();
 
-    // ⚠️ 백엔드 오류 처리
-    if (data.error) {
-      $("status").textContent = "❌ 실패: " + data.error;
-      $("summary").textContent = "오류 발생: " + data.error;
-      return;
-    }
+    if (data.error) throw new Error(data.error);
 
-    // -------------------------------
-    // ✅ 결과 표시
-    // -------------------------------
     $("status").textContent = "✅ 분석 완료";
     $("summary").innerHTML = `
       <b>진단 결과:</b> ${data.diagnosis}<br>
@@ -61,9 +40,6 @@ $("analyzeBtn").addEventListener("click", async () => {
       <b>신뢰도:</b> ${(data.confidence * 100).toFixed(1)}%
     `;
 
-    // -------------------------------
-    // ✅ 표 데이터 구성
-    // -------------------------------
     const mk = (v) => (v * 100).toFixed(1) + "%";
     const rows = Object.keys(data.ratios)
       .map(
@@ -87,9 +63,6 @@ $("analyzeBtn").addEventListener("click", async () => {
       ${rows}
     `;
 
-    // -------------------------------
-    // ✅ 그래프 (Chart.js)
-    // -------------------------------
     const labels = Object.keys(data.ratios);
     const vals = labels.map((k) => data.ratios[k] * 100);
     const norms = labels.map((k) => data.normal_ranges[k] * 100);
@@ -114,25 +87,13 @@ $("analyzeBtn").addEventListener("click", async () => {
       },
       options: {
         responsive: true,
-        scales: {
-          y: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } },
-        },
-        plugins: {
-          legend: { position: "bottom" },
-          title: {
-            display: true,
-            text: "정상 대비 편차 시각화 그래프",
-          },
-        },
+        scales: { y: { beginAtZero: true, max: 100 } },
       },
     });
 
-    // -------------------------------
-    // ✅ 병변 시각화 이미지
-    // -------------------------------
     $("segmentationResult").src = `data:image/png;base64,${data.segmented_image}`;
   } catch (e) {
     console.error(e);
-    $("status").textContent = "❌ 분석 실패: " + e.message;
+    $("status").textContent = "❌ 실패: " + e.message;
   }
 });
