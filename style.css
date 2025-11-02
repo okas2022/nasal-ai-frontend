@@ -1,46 +1,49 @@
 body {
   font-family: "Noto Sans KR", sans-serif;
-  background: #fafafa;
+  background: #f5f7fa;
   text-align: center;
-  padding: 40px;
-  color: #333;
+  margin: 0;
+  padding: 0;
 }
 
-h1 {
-  color: #1976d2;
-  margin-bottom: 20px;
-}
-
-button {
-  padding: 10px 20px;
-  font-size: 15px;
-  border: none;
-  background: #1976d2;
+header {
+  background: #002b7f;
   color: white;
-  border-radius: 8px;
-  cursor: pointer;
+  padding: 15px 0;
 }
-button:hover {
-  background: #125a9c;
+
+main {
+  margin: 20px auto;
+  width: 90%;
+  max-width: 800px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+img {
+  width: 48%;
+  margin: 10px;
+  border-radius: 8px;
+}
+
+#resultTable {
+  margin: 20px auto;
+  border-collapse: collapse;
+  width: 80%;
+}
+
+#resultTable th, #resultTable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#resultTable th {
+  background: #002b7f;
+  color: white;
 }
 
 .hidden {
   display: none;
-}
-
-#resultImage {
-  width: 400px;
-  margin: 20px auto;
-  display: block;
-  border: 2px solid #ccc;
-  border-radius: 10px;
-}
-
-.metrics {
-  margin: 15px 0;
-  font-size: 16px;
-}
-
-canvas {
-  margin-top: 20px;
 }
