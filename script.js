@@ -1,138 +1,129 @@
-/* ===== 설정: 백엔드 API URL ===== */
-const API_URL = "https://okas2000-nasal-ai-backend.hf.space/api/predict";
+// === Nasal AI Frontend Script ===
+// Hugging Face Backend 주소 (아래 URL은 본인 backend 주소로 교체)
+const BACKEND_URL = "https://okas2000-nasal-ai-backend.hf.space/api/predict";
 
-/* ===== DOM ===== */
-const fileInput   = document.getElementById("fileInput");
-const analyzeBtn  = document.getElementById("analyzeBtn");
-const previewImg  = document.getElementById("previewImg");
-const overlayImg  = document.getElementById("overlayImg");
-const kpiDiagnosis= document.getElementById("kpiDiagnosis");
-const kpiConf     = document.getElementById("kpiConf");
-const kpiHyper    = document.getElementById("kpiHyper");
-const kpiNarrow   = document.getElementById("kpiNarrow");
-const metricsBody = document.getElementById("metricsBody");
-const debugBox    = document.getElementById("debugBox");
-const resultBadges= document.getElementById("resultBadges");
+// HTML 요소 참조
+const fileInput = document.getElementById("imageUpload");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const imagePreview = document.getElementById("imagePreview");
+const resultText = document.getElementById("resultText");
+const summaryContainer = document.getElementById("summaryTableContainer");
+const chartCanvas = document.getElementById("colorChart");
 
-let radarChart;
+let colorChart = null;
 
-/* 미리보기 표시 */
-fileInput.addEventListener("change", (e) => {
-  const f = e.target.files?.[0];
-  if (!f) return;
-  const url = URL.createObjectURL(f);
-  previewImg.src = url;
+// 이미지 미리보기
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreview.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 });
 
-/* 분석 버튼 */
+// AI 분석 요청
 analyzeBtn.addEventListener("click", async () => {
-  const f = fileInput.files?.[0];
-  if (!f) {
-    alert("이미지를 먼저 선택해주세요.");
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("먼저 이미지를 업로드하세요!");
     return;
   }
-  setBusy(true);
+
+  resultText.textContent = "🔍 AI가 분석 중입니다... 잠시만 기다려주세요.";
+  summaryContainer.innerHTML = "";
+  if (colorChart) {
+    colorChart.destroy();
+    colorChart = null;
+  }
 
   try {
-    const fd = new FormData();
-    fd.append("file", f);
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const res = await fetch(API_URL, { method: "POST", body: fd });
-    const text = await res.text();     // 방어적 파싱
-    debugBox.textContent = `HTTP ${res.status}\n\n${text}`;
+    const response = await fetch(BACKEND_URL, {
+      method: "POST",
+      body: formData,
+    });
 
-    const json = JSON.parse(text);
-    renderResult(json);
-  } catch (err) {
-    console.error(err);
-    alert("분석 중 오류가 발생했습니다. 콘솔/로그를 확인해주세요.");
-  } finally {
-    setBusy(false);
+    if (!response.ok) {
+      throw new Error(`서버 오류: ${response.status}`);
+    }
+
+    const result = await response.json();
+    displayResults(result);
+  } catch (error) {
+    console.error(error);
+    resultText.textContent = "❌ 분석 중 오류가 발생했습니다. 백엔드 서버를 확인하세요.";
   }
 });
 
-/* 결과 렌더링 */
-function renderResult(d) {
-  // 오버레이
-  if (d.overlay_mask_png_b64) {
-    overlayImg.src = `data:image/png;base64,${d.overlay_mask_png_b64}`;
-  }
+// 결과 표시 함수
+function displayResults(result) {
+  const {
+    lesion_type,
+    hypertrophy_grade,
+    confidence,
+    mean_brightness,
+    green_ratio,
+    image_size,
+  } = result;
 
-  // KPI
-  kpiDiagnosis.textContent = d.diagnosis ?? "-";
-  kpiConf.textContent      = d.confidence ? `${(d.confidence*100).toFixed(1)}%` : "-";
-  kpiHyper.textContent     = d.hypertrophy_grade ?? "-";
-  kpiNarrow.textContent    = d.narrowness != null ? (d.narrowness*100).toFixed(1)+"%" : "-";
+  resultText.innerHTML = `
+    <b>AI 분석 결과:</b><br/>
+    병변 유형: <b>${lesion_type}</b><br/>
+    점막 비후 정도: <b>${hypertrophy_grade}</b><br/>
+    신뢰도(Confidence): ${(confidence * 100).toFixed(1)}%<br/>
+    평균 밝기(Brightness): ${mean_brightness.toFixed(3)}<br/>
+    녹색 비율(Green ratio): ${green_ratio.toFixed(3)}<br/>
+    이미지 크기: ${image_size[0]} × ${image_size[1]} px
+  `;
 
-  // 배지
-  resultBadges.classList.remove("hidden");
-  resultBadges.innerHTML = "";
-  resultBadges.appendChild(makeBadge("Primary", d.diagnosis || "Unknown"));
-  if (d.airway_ratio != null) resultBadges.appendChild(makeBadge("Airway", `${(d.airway_ratio*100).toFixed(0)}%`));
-  if (d.red_mean     != null) resultBadges.appendChild(makeBadge("Redness", d.red_mean.toFixed(2)));
-  if (d.gloss_ratio  != null) resultBadges.appendChild(makeBadge("Gloss", d.gloss_ratio.toFixed(2)));
+  // 표 형태 요약
+  summaryContainer.innerHTML = `
+    <table class="result-table">
+      <tr><th>항목</th><th>값</th></tr>
+      <tr><td>병변 유형</td><td>${lesion_type}</td></tr>
+      <tr><td>점막 비후 정도</td><td>${hypertrophy_grade}</td></tr>
+      <tr><td>신뢰도</td><td>${(confidence * 100).toFixed(1)}%</td></tr>
+      <tr><td>평균 밝기</td><td>${mean_brightness.toFixed(3)}</td></tr>
+      <tr><td>녹색 비율</td><td>${green_ratio.toFixed(3)}</td></tr>
+    </table>
+  `;
 
-  // 표
-  const rows = [
-    ["Brightness",   fmt(d.brightness), "전체 밝기 (0~1)"],
-    ["Red mean",     fmt(d.red_mean),    "발적(염증) 추정"],
-    ["Circularity",  fmt(d.circularity), "원형도 (폴립 지표)"],
-    ["Aspect ratio", fmt(d.aspect_ratio),"세장비 (비후 지표)"],
-    ["Airway ratio", fmt(d.airway_ratio),"밝은 통로 비율"],
-    ["Narrowness",   fmt(d.narrowness),  "협착도 (1-Airway)"],
-    ["Entropy",      fmt(d.entropy),     "텍스처 변화량"],
-    ["Edge density", fmt(d.edge_density),"엣지 밀도"],
-    ["Gloss ratio",  fmt(d.gloss_ratio), "광택/점액 추정"],
-  ];
-  metricsBody.innerHTML = rows.map(([k,v,desc]) => `
-    <tr><td>${k}</td><td>${v}</td><td>${desc}</td></tr>
-  `).join("");
-
-  // 레이더 차트
-  drawRadar({
-    Redness: d.red_mean ?? 0,
-    Gloss: d.gloss_ratio ?? 0,
-    Narrowness: d.narrowness ?? 0,
-    Texture: d.entropy ?? 0,
-    Edge: d.edge_density ?? 0
-  });
-}
-
-function drawRadar(metrics) {
-  const ctx = document.getElementById("radarCanvas");
-  const labels = Object.keys(metrics);
-  const data = Object.values(metrics).map(v => clamp01(v));
-
-  if (radarChart) radarChart.destroy();
-  radarChart = new Chart(ctx, {
-    type: "radar",
+  // 색상 비율 차트
+  const ctx = chartCanvas.getContext("2d");
+  colorChart = new Chart(ctx, {
+    type: "bar",
     data: {
-      labels,
-      datasets: [{
-        label: "Feature Index (0~1)",
-        data,
-        fill: true,
-        pointRadius: 3
-      }]
+      labels: ["Mean Brightness", "Green Ratio", "Confidence"],
+      datasets: [
+        {
+          label: "색상 분석 결과",
+          data: [mean_brightness, green_ratio, confidence],
+          backgroundColor: ["#f1c40f", "#2ecc71", "#3498db"],
+        },
+      ],
     },
     options: {
       responsive: true,
-      scales: { r: { suggestedMin: 0, suggestedMax: 1 } },
-      plugins: { legend: { display: false } }
-    }
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: "AI 색상 기반 분석 결과",
+          font: { size: 16 },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 1.0,
+          title: { display: true, text: "비율 값" },
+        },
+      },
+    },
   });
-}
-
-/* utils */
-function clamp01(v) { return Math.max(0, Math.min(1, Number(v)||0)); }
-function fmt(v) { return v == null ? "-" : Number(v).toFixed(3); }
-function makeBadge(title, value) {
-  const el = document.createElement("div");
-  el.className = "badge";
-  el.innerHTML = `<span class="badge-k">${title}</span><span class="badge-v">${value}</span>`;
-  return el;
-}
-function setBusy(b) {
-  analyzeBtn.disabled = !!b;
-  analyzeBtn.textContent = b ? "분석 중..." : "AI 분석 시작";
 }
